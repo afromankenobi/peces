@@ -1,0 +1,90 @@
+<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="MPSitio.Master.cs" Inherits="peces.MPSitio" %>
+
+<!DOCTYPE html>
+
+<!-- En Rails esto sería application.html.erb con layouts y partials -->
+<!-- En Phoenix un simple root.html.heex con componentes LiveView -->
+<html>
+<head runat="server">
+    <title>PeCe's - Taller de Reparación</title>
+    <!-- ContentPlaceHolder vs. hermosos <%= yield :head %> en Rails -->
+    <asp:ContentPlaceHolder ID="head" runat="server">
+    </asp:ContentPlaceHolder>
+    <!-- CSS incrustado cuando en Rails/Phoenix tendríamos assets estructurados -->
+    <!-- Encima sin variables CSS o Sass... qué dolor! -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #0066cc;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .nav {
+            background-color: #f2f2f2;
+            padding: 10px 20px;
+        }
+        .search {
+            padding: 10px 20px;
+            background-color: #e6e6e6;
+            margin-bottom: 20px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Un form que envuelve todo... en serio? En Rails/Phoenix cada form es independiente -->
+    <form id="form1" runat="server">
+        <div class="header">
+            <div class="logo">PeCe's - Taller de Reparación</div>
+        </div>
+        <div class="nav">
+            <!-- En Rails sería un hermoso nav partial con helpers link_to -->
+            <!-- En Phoenix un bonito componente LiveView...pero esto... -->
+            <asp:SiteMapDataSource ID="SiteMapDataSource1" runat="server" />
+            <asp:Menu ID="MenuNavegacion" runat="server" DataSourceID="SiteMapDataSource1" Orientation="Horizontal" StaticDisplayLevels="2">
+                <StaticMenuItemStyle HorizontalPadding="10px" VerticalPadding="5px" />
+            </asp:Menu>
+        </div>
+        <div class="search">
+            <!-- En Phoenix esto sería un componente con socket y liveview -->
+            <!-- En Rails un simple form_with que se podría reutilizar -->
+            <h3>Búsqueda Avanzada</h3>
+            <asp:Label ID="lblBusqueda" runat="server" Text="Criterio de búsqueda:"></asp:Label>
+            <asp:TextBox ID="txtBusqueda" runat="server"></asp:TextBox>
+            <asp:Button ID="btnBuscar" runat="server" Text="Buscar" OnClick="btnBuscar_Click" />
+        </div>
+        <div class="content">
+            <!-- En Rails: <%= yield %> -->
+            <!-- En Phoenix: <%= @inner_content %> -->
+            <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+            </asp:ContentPlaceHolder>
+        </div>
+        <div class="footer">
+            <!-- Al menos la interpolación es parecida a Ruby -->
+            &copy; <%= DateTime.Now.Year %> PeCe's - Todos los derechos reservados
+        </div>
+    </form>
+</body>
+</html>
