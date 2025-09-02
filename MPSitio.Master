@@ -30,6 +30,11 @@
             font-size: 24px;
             font-weight: bold;
         }
+        .logo img {
+            height: 40px;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
         .nav {
             background-color: #f2f2f2;
             padding: 10px 20px;
@@ -57,7 +62,10 @@
     <!-- Un form que envuelve todo... en serio? En Rails/Phoenix cada form es independiente -->
     <form id="form1" runat="server">
         <div class="header">
-            <div class="logo">PeCe's - Taller de Reparación</div>
+            <div class="logo">
+                <img src="logo.png" alt="PeCe's Logo" />
+                PeCe's - Taller de Reparación
+            </div>
         </div>
         <div class="nav">
             <!-- En Rails sería un hermoso nav partial con helpers link_to -->
