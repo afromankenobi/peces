@@ -52,7 +52,11 @@
             <AlternatingRowStyle BackColor="White" />
             <Columns>
                 <asp:BoundField DataField="Id" HeaderText="ID" Visible="false" />
-                <asp:BoundField DataField="Cliente.Nombre" HeaderText="Cliente" />
+                <asp:TemplateField HeaderText="Cliente">
+                    <ItemTemplate>
+                        <%# Eval("Cliente.Nombre") %>
+                    </ItemTemplate>
+                </asp:TemplateField>
                 <asp:BoundField DataField="Producto" HeaderText="Producto" />
                 <asp:BoundField DataField="Estado" HeaderText="Estado" />
                 <asp:TemplateField>
