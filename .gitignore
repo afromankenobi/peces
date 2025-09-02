@@ -1,4 +1,30 @@
+# Archivos de desarrollo y documentación interna
 CLAUDE.md
 validaciones_y_deploy.md
 desarrollo.md
 requirements.md
+compliance.md
+TA_4.docx
+
+# Visual Studio files
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.cache
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+
+# Packages
+packages/
+
+# Temporary files
+*.tmp
+*.temp
