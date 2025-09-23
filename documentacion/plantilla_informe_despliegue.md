@@ -1,7 +1,6 @@
 # Informe de Despliegue - Aplicación PeCe's
 
-*[Nombre del Estudiante]*  
-*[Fecha]*
+Jorge Vargas, 2025
 
 ## Publicación del Sitio Web
 
