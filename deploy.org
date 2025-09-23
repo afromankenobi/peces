@@ -1,0 +1,323 @@
+#+TITLE: Guía de Despliegue - Sistema PeCe's
+#+AUTHOR: Programación I - Examen Final
+#+DATE: 2024
+
+* INTRODUCCIÓN
+Esta guía describe paso a paso el proceso de despliegue del sistema web PeCe's en un ambiente de producción utilizando Windows Server 2022 e IIS.
+
+* REQUISITOS PREVIOS
+
+** Hardware Mínimo
+- VMware Workstation instalado
+- 8GB RAM disponible en el host
+- 100GB espacio en disco disponible
+- Procesador con soporte de virtualización
+
+** Software Necesario
+- Windows Server 2022 ISO
+- VMware Tools
+- Carpeta peces-deploy (generada por publicación)
+
+* FASE 1: CREACIÓN DE LA MÁQUINA VIRTUAL
+
+** 1.1 Crear Nueva VM en VMware Workstation
+1. Abrir VMware Workstation
+2. Seleccionar "Create a New Virtual Machine"
+3. Elegir "Custom (advanced)"
+4. Mantener configuración de compatibilidad por defecto
+
+** 1.2 Configuración de Hardware
+*** Especificaciones Requeridas:
+- *RAM*: 3GB (3072 MB)
+- *Procesador*: 3 núcleos
+- *Disco Duro*: 60GB
+- *Red*: NAT o Bridged (para acceso a internet)
+
+*** Pasos de Configuración:
+1. En "Guest Operating System": Seleccionar "Microsoft Windows"
+2. Version: "Windows Server 2022"
+3. Asignar nombre: "PeCes-Server"
+4. Configurar procesador: 3 cores
+5. Configurar memoria: 3072 MB
+6. Configurar red: NAT
+7. Crear nuevo disco virtual: 60GB, almacenar como archivo único
+
+** 1.3 Instalación del Sistema Operativo
+1. Montar ISO de Windows Server 2022
+2. Iniciar la VM
+3. Seguir asistente de instalación:
+   - Seleccionar "Windows Server 2022 Standard (Desktop Experience)"
+   - Configurar usuario Administrador con contraseña segura
+   - Completar configuración inicial
+
+** 1.4 Configuración Post-Instalación
+1. Activar Windows (si aplica)
+2. Configurar red y conexión a internet
+3. Aplicar actualizaciones críticas de Windows Update
+4. Configurar firewall de Windows
+
+* FASE 2: INSTALACIÓN Y CONFIGURACIÓN DE COMPONENTES
+
+** 2.1 Instalación de VMware Tools
+*** Propósito: Permitir transferencia de archivos entre host y VM
+
+1. En VMware: VM → Install VMware Tools
+2. En la VM: Abrir unidad de CD/DVD
+3. Ejecutar setup64.exe como Administrador
+4. Reiniciar VM cuando se solicite
+5. Verificar: Escritorio → Propiedades → Configuración
+
+** 2.2 Instalación de IIS con ASP.NET
+*** Componentes Necesarios para ASP.NET Web Forms
+
+1. *Abrir Server Manager*
+2. *Add Roles and Features Wizard*:
+   - Role-based installation
+   - Seleccionar servidor local
+   - Server Roles → Web Server (IIS)
+
+3. *Seleccionar Role Services*:
+   #+BEGIN_EXAMPLE
+   Web Server
+   ├── Common HTTP Features
+   │   ├── ✓ Default Document
+   │   ├── ✓ Directory Browsing
+   │   ├── ✓ HTTP Errors
+   │   ├── ✓ HTTP Redirection
+   │   └── ✓ Static Content
+   ├── Application Development
+   │   ├── ✓ .NET Extensibility 4.8
+   │   ├── ✓ ASP.NET 4.8
+   │   ├── ✓ ISAPI Extensions
+   │   └── ✓ ISAPI Filters
+   ├── Health and Diagnostics
+   │   ├── ✓ HTTP Logging
+   │   └── ✓ Request Monitor
+   ├── Security
+   │   ├── ✓ Request Filtering
+   │   └── ✓ Windows Authentication
+   └── Management Tools
+       ├── ✓ IIS Management Console
+       └── ✓ IIS Management Scripts and Tools
+   #+END_EXAMPLE
+
+4. *Instalar y reiniciar* si es necesario
+
+** 2.3 Verificación de IIS
+1. Abrir navegador web
+2. Navegar a: http://localhost
+3. Debe mostrar página por defecto de IIS
+4. Verificar que ASP.NET esté habilitado:
+   - IIS Manager → Server → Modules → buscar "AspNetCoreModule"
+
+* FASE 3: TRANSFERENCIA Y CONFIGURACIÓN DE ARCHIVOS
+
+** 3.1 Transferir Carpeta de Despliegue
+*** Usando VMware Tools (Compartir Carpetas):
+
+1. *En VMware Workstation*:
+   - VM → Settings → Options → Shared Folders
+   - Habilitar "Always enabled"
+   - Add → Agregar carpeta que contiene peces-deploy
+
+2. *En la VM*:
+   - Acceder a \\vmware-host\Shared Folders\
+   - Copiar carpeta peces-deploy completa
+
+*** Ubicación de Destino:
+- Destino: C:\inetpub\wwwroot\peces-deploy
+
+** 3.2 Configuración de Permisos
+*** Asignar grupo IIS_IUSRS a la carpeta:
+
+1. *Propiedades de Carpeta*:
+   - Click derecho en C:\inetpub\wwwroot\peces-deploy
+   - Properties → Security → Edit
+
+2. *Agregar IIS_IUSRS*:
+   - Add → Advanced → Find Now
+   - Seleccionar "IIS_IUSRS"
+   - Permissions: Full Control
+
+3. *Aplicar cambios recursivamente*
+
+** 3.3 Verificación de Archivos
+*** Estructura esperada en peces-deploy:
+#+BEGIN_EXAMPLE
+peces-deploy/
+├── bin/
+│   └── (archivos compilados .dll)
+├── Ticket/
+│   ├── AgregarTicket.aspx
+│   ├── ActualizarTicket.aspx
+│   ├── DetalleTicket.aspx
+│   └── ListarTickets.aspx
+├── Home.aspx
+├── Web.config
+└── (otros archivos de la aplicación)
+#+END_EXAMPLE
+
+* FASE 4: CONFIGURACIÓN DE IIS
+
+** 4.1 Configurar Sitio Web Principal
+1. *Abrir IIS Manager* (inetmgr)
+2. *Detener sitio por defecto*:
+   - Sites → Default Web Site
+   - Actions → Stop
+
+** 4.2 Crear Nuevo Sitio Web
+1. *Add Website*:
+   - Site name: *peces-web*
+   - Physical path: *C:\inetpub\wwwroot\peces-deploy*
+   - Port: *80*
+   - Host name: (dejar en blanco)
+
+2. *Configurar Application Pool*:
+   - Application Pools → DefaultAppPool
+   - .NET CLR Version: v4.0.30319
+   - Managed Pipeline Mode: Integrated
+   - Identity: ApplicationPoolIdentity
+
+** 4.3 Configurar Documento por Defecto
+1. *En IIS Manager*:
+   - Sites → peces-web → Default Document
+   - Remove todos los documentos existentes
+   - Add → "Home.aspx"
+
+** 4.4 Verificar Configuración ASP.NET
+1. *Handler Mappings*:
+   - Verificar que *.aspx esté mapeado a AspNetHandler
+
+2. *Modules*:
+   - Verificar que DefaultAuthentication esté presente
+
+* FASE 5: PRUEBAS Y VERIFICACIÓN
+
+** 5.1 Pruebas Básicas de Conectividad
+1. *Verificar servicio IIS*:
+   - Services → World Wide Web Publishing Service → Running
+
+2. *Probar acceso local*:
+   - Abrir navegador en la VM
+   - Navegar a: http://localhost
+   - Debe cargar Home.aspx
+
+** 5.2 Pruebas Funcionales del Sistema
+*** 5.2.1 Probar Navegación Principal
+1. Acceder a http://localhost
+2. Verificar que carga la página de inicio
+3. Navegar a sección de tickets
+
+*** 5.2.2 Probar Formulario de Creación
+1. Ir a AgregarTicket.aspx
+2. *Probar validaciones*:
+   - Enviar formulario vacío → Debe mostrar errores en ValidationSummary
+   - RUT inválido → Debe mostrar error de formato
+   - Nombre con menos de 5 caracteres → Error de longitud
+   - Email inválido → Error de formato
+
+3. *Crear ticket válido*:
+   - Llenar todos los campos correctamente
+   - Verificar que se guarda exitosamente
+
+*** 5.2.3 Probar Formulario de Actualización
+1. Desde listado, editar un ticket existente
+2. Probar validaciones similares
+3. Verificar que los cambios se guardan
+
+*** 5.2.4 Probar Manejo de Errores
+1. Intentar acceder a ticket inexistente
+2. Verificar que se ocultan los controles
+3. Verificar mensaje de error apropiado
+
+** 5.3 Pruebas de Acceso Remoto (Opcional)
+Si la VM tiene IP accesible desde host:
+1. Obtener IP de la VM: ipconfig
+2. Desde host, navegar a: http://[IP_VM]
+3. Verificar funcionamiento completo
+
+* SOLUCIÓN DE PROBLEMAS COMUNES
+
+** Error: "Server Application Unavailable"
+- *Causa*: Problema con Application Pool
+- *Solución*:
+  1. IIS Manager → Application Pools → DefaultAppPool
+  2. Right click → Start
+  3. Verificar .NET Framework version
+
+** Error: "HTTP 403 Forbidden"
+- *Causa*: Permisos insuficientes
+- *Solución*:
+  1. Verificar permisos IIS_IUSRS
+  2. Verificar documento por defecto configurado
+
+** Error: "Could not load file or assembly"
+- *Causa*: Dependencias faltantes
+- *Solución*:
+  1. Verificar que todos los .dll están en /bin
+  2. Instalar .NET Framework 4.7.2 si no está
+
+** Error de Validaciones no Funcionan
+- *Causa*: UnobtrusiveValidationMode no configurado
+- *Solución*: Verificar Web.config tiene:
+  #+BEGIN_EXAMPLE
+  <appSettings>
+    <add key="ValidationSettings:UnobtrusiveValidationMode" value="None" />
+  </appSettings>
+  #+END_EXAMPLE
+
+* CHECKLIST DE VERIFICACIÓN FINAL
+
+** ✓ Infraestructura
+- [ ] VM con Windows Server 2022 funcionando
+- [ ] VMware Tools instalado y funcionando
+- [ ] IIS instalado con componentes ASP.NET
+- [ ] Firewall configurado para HTTP
+
+** ✓ Aplicación
+- [ ] Carpeta peces-deploy en C:\inetpub\wwwroot\
+- [ ] Permisos IIS_IUSRS configurados
+- [ ] Sitio "peces-web" creado y funcionando
+- [ ] Home.aspx configurado como documento por defecto
+
+** ✓ Funcionalidad
+- [ ] Página de inicio carga correctamente
+- [ ] Formularios de creación y actualización funcionan
+- [ ] Validaciones del lado servidor operativas
+- [ ] ValidationSummary muestra errores apropiados
+- [ ] Page.IsValid impide guardado con errores
+- [ ] Controles se ocultan cuando no se encuentra registro
+
+** ✓ Pruebas Completadas
+- [ ] Navegación entre páginas
+- [ ] Creación de tickets con datos válidos
+- [ ] Validación de campos obligatorios
+- [ ] Validación de formatos (RUT, email)
+- [ ] Validación de longitudes mínimas
+- [ ] Actualización de tickets existentes
+- [ ] Manejo de errores (registro no encontrado)
+
+* CAPTURAS DE PANTALLA REQUERIDAS
+
+Para la documentación del examen, tomar capturas de:
+
+1. *Configuración VM*: Pantalla de configuración de hardware
+2. *Windows Server*: Escritorio de Windows Server funcionando
+3. *IIS Manager*: Vista de sitios web con peces-web activo
+4. *Navegador*: Página de inicio del sistema funcionando
+5. *Formularios*: AgregarTicket.aspx funcionando
+6. *Validaciones*: ValidationSummary mostrando errores
+7. *Éxito*: Ticket creado exitosamente
+8. *Actualización*: ActualizarTicket.aspx funcionando
+9. *Error Handling*: Mensaje cuando no se encuentra registro
+
+* CONTACTO Y SOPORTE
+
+En caso de problemas durante el despliegue:
+- Revisar Event Viewer de Windows para errores de aplicación
+- Verificar logs de IIS en C:\inetpub\logs\LogFiles\
+- Consultar documentación oficial de IIS y ASP.NET
+
+---
+*Guía creada para el Examen Final de Programación I*
+*Sistema de Tickets PeCe's - 2024*
